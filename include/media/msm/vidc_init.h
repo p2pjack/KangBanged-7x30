@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2011, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2010-2012, Code Aurora Forum. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -14,7 +14,8 @@
 #ifndef VIDC_INIT_H
 #define VIDC_INIT_H
 #include <linux/ion.h>
-#include "vidc_type.h"
+#include <media/msm/vidc_type.h>
+#include <media/msm/vcd_property.h>
 
 #define VIDC_MAX_NUM_CLIENTS 4
 #define MAX_VIDEO_NUM_OF_BUFF 100
@@ -28,6 +29,7 @@ struct buf_addr_table {
 	unsigned long user_vaddr;
 	unsigned long kernel_vaddr;
 	unsigned long phy_addr;
+	unsigned long buff_ion_flag;
 	struct ion_handle *buff_ion_handle;
 	int pmem_fd;
 	struct file *file;
@@ -63,6 +65,10 @@ struct video_client_ctx {
 void __iomem *vidc_get_ioaddr(void);
 int vidc_load_firmware(void);
 void vidc_release_firmware(void);
+u32 vidc_get_fd_info(struct video_client_ctx *client_ctx,
+		enum buffer_dir buffer, int pmem_fd,
+		unsigned long kvaddr, int index,
+		struct ion_handle **buff_handle);
 u32 vidc_lookup_addr_table(struct video_client_ctx *client_ctx,
 	enum buffer_dir buffer, u32 search_with_user_vaddr,
 	unsigned long *user_vaddr, unsigned long *kernel_vaddr,
@@ -73,9 +79,16 @@ u32 vidc_insert_addr_table(struct video_client_ctx *client_ctx,
 	unsigned long *kernel_vaddr, int pmem_fd,
 	unsigned long buffer_addr_offset,
 	unsigned int max_num_buffers, unsigned long length);
+u32 vidc_insert_addr_table_kernel(struct video_client_ctx *client_ctx,
+	enum buffer_dir buffer, unsigned long user_vaddr,
+	unsigned long kernel_vaddr, unsigned long phys_addr,
+	unsigned int max_num_buffers,
+	unsigned long length);
 u32 vidc_delete_addr_table(struct video_client_ctx *client_ctx,
 	enum buffer_dir buffer, unsigned long user_vaddr,
 	unsigned long *kernel_vaddr);
+void vidc_cleanup_addr_table(struct video_client_ctx *client_ctx,
+		enum buffer_dir buffer);
 
 u32 vidc_timer_create(void (*timer_handler)(void *),
 	void *user_data, void **timer_handle);

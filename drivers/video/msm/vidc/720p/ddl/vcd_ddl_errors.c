@@ -11,9 +11,17 @@
  *
  */
 
-#include "vidc_type.h"
+#include <media/msm/vidc_type.h>
 #include "vcd_ddl_utils.h"
 #include "vcd_ddl.h"
+
+#if DEBUG
+#define DBG(x...) printk(KERN_DEBUG x)
+#else
+#define DBG(x...)
+#endif
+
+#define ERR(x...) printk(KERN_ERR x)
 
 #define INVALID_CHANNEL_NUMBER  1
 #define INVALID_COMMAND_ID 2
@@ -383,8 +391,10 @@ static u32 ddl_handle_core_recoverable_errors(struct ddl_context \
 		ddl->decoding &&
 		!ddl->codec_data.decoder.header_in_start &&
 		!ddl->codec_data.decoder.dec_disp_info.img_size_x &&
-		!ddl->codec_data.decoder.dec_disp_info.img_size_y
-		) {
+		!ddl->codec_data.decoder.dec_disp_info.img_size_y &&
+		!eos) {
+		DBG("Treat header in start error %u as success",
+			vcd_status);
 		/* this is first frame seq. header only case */
 		vcd_status = VCD_S_SUCCESS;
 		ddl->input_frame.vcd_frm.flags |=
@@ -418,9 +428,10 @@ static u32 ddl_handle_core_recoverable_errors(struct ddl_context \
 	}
 
 	/* if it is decoder EOS case */
-	if (ddl->decoding && eos)
+	if (ddl->decoding && eos) {
+		DBG("DEC-EOS_RUN");
 		ddl_decode_eos_run(ddl);
-	else
+	} else
 		DDL_IDLE(ddl_context);
 
 	return true;
@@ -497,19 +508,10 @@ u32 ddl_handle_core_errors(struct ddl_context *ddl_context)
 		return false;
 	}
 
-	INFO("%s(): OPFAILED!!", __func__);
-	switch(ddl_context->cmd_err_status) {
-	case NON_FRAME_DATA_RECEIVED:
-		INFO("CMD_ERROR_STATUS = %u, DISP_ERR_STATUS = %u",
-			ddl_context->cmd_err_status,
-			ddl_context->disp_pic_err_status);
-		break;
-	default:
-		ERR("CMD_ERROR_STATUS = %u, DISP_ERR_STATUS = %u",
-			ddl_context->cmd_err_status,
-			ddl_context->disp_pic_err_status);
-		break;
-	}
+	ERR("\n %s(): OPFAILED!!", __func__);
+	ERR("\n CMD_ERROR_STATUS = %u, DISP_ERR_STATUS = %u",
+		ddl_context->cmd_err_status,
+		ddl_context->disp_pic_err_status);
 
 	status = ddl_handle_hw_fatal_errors(ddl_context);
 

@@ -147,13 +147,10 @@ else
     ifeq ($(CONFIG_ARCH_MSM7X27A),y)
       obj-$(CONFIG_FB_MSM)          += msm_7x27A/
     else
-      obj-$(CONFIG_FB_MSM)          += msm_7x30/
+      obj-$(CONFIG_FB_MSM)          += msm/
     endif
   endif
 endif
-
-obj-$(CONFIG_MSM_VIDC_1080P) += msm/vidc/
-obj-$(CONFIG_MSM_VIDC_720P) += msm/vidc/
 
 obj-$(CONFIG_FB_NUC900)           += nuc900fb.o
 obj-$(CONFIG_FB_JZ4740)		  += jz4740_fb.o
