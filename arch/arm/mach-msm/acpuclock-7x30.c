@@ -146,6 +146,7 @@ static struct clkctl_acpu_speed acpu_freq_tbl[] = {
 	{ 1, 1920000, PLL_2, 3, 0, 192000000, 1500, VDD_RAW(1500), &pll2_tbl[4]},
 	{ 1, 1996800, PLL_2, 3, 0, 192000000, 1525, VDD_RAW(1525), &pll2_tbl[4]},
 	{ 1, 2016000, PLL_2, 3, 0, 192000000, 1550, VDD_RAW(1550), &pll2_tbl[4]},
+        { 1, 2138880, PLL_2, 3, 0, 192000000, 1575, VDD_RAW(1575), &pll2_tbl[4]},
 #endif /* CONFIG_ACPU_HIGH_OC */
 	{ 0 }
 };
