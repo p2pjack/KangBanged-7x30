@@ -152,7 +152,6 @@ struct pm8xxx_gpio_init_info {
 };
 
 static unsigned int engineerid;
-extern unsigned long msm_fb_base;
 
 unsigned int vision_get_engineerid(void)
 {
@@ -1961,7 +1960,31 @@ static struct platform_device android_pmem_device = {
 
 static struct resource msm_fb_resources[] = {
 	{
-		.flags  = IORESOURCE_DMA,
+		.flags  = IORESOURCE_MEM,
+	}
+};
+
+static int msm_fb_detect_panel(const char *name)
+{
+	if (!strcmp(name, "lcdc_s6d16a0x21_wvga")) {
+		printk("%s: Sony panel!\n", __func__);
+		return 0;
+	}
+	return -ENODEV;
+}
+
+static struct msm_fb_platform_data msm_fb_pdata = {
+	.detect_client = msm_fb_detect_panel,
+	.mddi_prescan = 1,
+};
+
+static struct platform_device msm_fb_device = {
+	.name   = "msm_fb",
+	.id     = 0,
+	.num_resources  = ARRAY_SIZE(msm_fb_resources),
+	.resource       = msm_fb_resources,
+	.dev    = {
+		.platform_data = &msm_fb_pdata,
 	}
 };
 
@@ -2284,26 +2307,6 @@ static int panel_gpio_switch(int on)
 
 	return 0;
 }
-
-static struct resource resources_msm_fb[] = {
-	{
-		.flags = IORESOURCE_MEM,
-	},
-};
-
-static struct panel_platform_data sonywvga_data = {
-        .fb_res = &resources_msm_fb[0],
-        .power = panel_power,
-        .gpio_switch = panel_gpio_switch,
-};
-
-static struct platform_device sonywvga_panel = {
-        .name = "panel-sonywvga-s6d16a0x21-7x30",
-        .id = -1,
-        .dev = {
-                .platform_data = &sonywvga_data,
-        },
-};
 
 #ifdef CONFIG_MSM_CAMERA
 
@@ -3285,6 +3288,7 @@ static struct platform_device *devices[] __initdata = {
         &msm_device_ssbi7,
 #endif
         &android_pmem_device,
+        &msm_fb_device,
         &msm_migrate_pages_device,
 #ifdef CONFIG_MSM_ROTATOR
         &msm_rotator_device,
@@ -3354,9 +3358,44 @@ static struct platform_device *devices[] __initdata = {
 	//	&cable_detect_device,
 };
 
-static int vision_init_panel(void)
+int mdp_core_clk_rate_table[] = {
+	122880000,
+	122880000,
+	192000000,
+	192000000,
+};
+
+static struct msm_panel_common_pdata mdp_pdata = {
+	.hw_revision_addr = 0xac001270,
+	.gpio = 30,
+	.mdp_core_clk_rate = 122880000,
+	.mdp_core_clk_table = mdp_core_clk_rate_table,
+	.num_mdp_clk = ARRAY_SIZE(mdp_core_clk_rate_table),
+	.mdp_rev = MDP_REV_40,
+};
+
+static int lcdc_panel_power(int on)
 {
-	return platform_device_register(&sonywvga_panel);
+	int flag_on = !!on;
+	static int lcdc_power_save_on;
+
+	if (lcdc_power_save_on == flag_on)
+		return 0;
+
+	lcdc_power_save_on = flag_on;
+
+	return panel_power(on);
+}
+
+static struct lcdc_platform_data lcdc_pdata = {
+	.lcdc_power_save = lcdc_panel_power,
+	.lcdc_gpio_config = panel_gpio_switch,
+};
+
+static void __init msm_fb_add_devices(void)
+{
+	msm_fb_register_device("mdp", &mdp_pdata);
+	msm_fb_register_device("lcdc", &lcdc_pdata);
 }
 
 static void __init vision_init(void)
@@ -3413,7 +3452,7 @@ static void __init vision_init(void)
 	msm_device_ssbi_pmic1.dev.platform_data =
 				&msm7x30_ssbi_pm8058_pdata;
 #endif
-        //	pmic8058_leds_init();
+	//pmic8058_leds_init();
 	buses_init();
 	platform_add_devices(devices, ARRAY_SIZE(devices));
 
@@ -3436,6 +3475,10 @@ static void __init vision_init(void)
 		vision_ts_atmel_data[0].config_T9[9] = 7;
 		vision_ts_atmel_data[1].config_T9[9] = 7;
 	}
+
+	/* mdp + lcdc */
+	msm_fb_add_devices();
+
 	msm_pm_set_platform_data(msm_pm_data, ARRAY_SIZE(msm_pm_data));
 	BUG_ON(msm_pm_boot_init(MSM_PM_BOOT_CONFIG_RESET_VECTOR, ioremap(0x0, PAGE_SIZE)));
 
@@ -3497,11 +3540,10 @@ static void __init vision_init(void)
 		pr_err("failed to create board_properties\n");
 
 	i2c_register_board_info(0, i2c_devices,	ARRAY_SIZE(i2c_devices));
-        vision_init_keypad();
+	vision_init_keypad();
 #ifdef CONFIG_MDP4_HW_VSYNC
 	vision_te_gpio_config();
 #endif
-	vision_init_panel();
 	vision_audio_init();
 	vision_wifi_init();
 	msm_init_pmic_vibrator(3000);
@@ -3624,7 +3666,6 @@ static void __init vision_allocate_memory_regions(void)
 	size = fb_size ? : MSM_FB_SIZE;
 	addr = alloc_bootmem_align(size, 0x1000);
 	msm_fb_resources[0].start = __pa(addr);
-	msm_fb_base = msm_fb_resources[0].start;
 	msm_fb_resources[0].end = msm_fb_resources[0].start + size - 1;
 	printk("allocating %lu bytes at %p (%lx physical) for fb\n",
 			size, addr, __pa(addr));
