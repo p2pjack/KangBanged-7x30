@@ -2125,7 +2125,6 @@ static int panel_power(int on)
 	int rc;
 	struct vreg *vreg_ldo19, *vreg_ldo20;
 	struct vreg *vreg_ldo12;
-	printk(KERN_INFO "%s: %d\n", __func__, on);
 
 	/* turn on L19 for OJ. Note: must before L12 */
 	vreg_ldo12 = vreg_get(NULL, "gp9");
@@ -2307,6 +2306,29 @@ static int panel_gpio_switch(int on)
 
 	return 0;
 }
+
+/* a hacky interface to control the panel power */
+static void lcdc_config_gpios(int on)
+{
+	printk(KERN_INFO "%s: %d\n", __func__, on);
+
+	if (panel_power(on))
+		printk(KERN_ERR "%s: panel_power failed!\n", __func__);
+	if (panel_gpio_switch(on))
+		printk(KERN_ERR "%s: panel_gpio_switch failed!\n", __func__);
+}
+
+static struct msm_panel_common_pdata lcdc_panel_data = {
+	.panel_config_gpio = lcdc_config_gpios,
+};
+
+static struct platform_device lcdc_sonywvga_panel_device = {
+	.name   = "lcdc_s6d16a0x21_wvga",
+	.id     = 0,
+	.dev    = {
+		.platform_data = &lcdc_panel_data,
+	}
+};
 
 #ifdef CONFIG_MSM_CAMERA
 
@@ -3293,6 +3315,7 @@ static struct platform_device *devices[] __initdata = {
 #ifdef CONFIG_MSM_ROTATOR
         &msm_rotator_device,
 #endif
+        &lcdc_sonywvga_panel_device,
         &android_pmem_adsp_device,
         &android_pmem_audio_device,
         &msm_device_i2c,
@@ -3389,7 +3412,6 @@ static int lcdc_panel_power(int on)
 
 static struct lcdc_platform_data lcdc_pdata = {
 	.lcdc_power_save = lcdc_panel_power,
-	.lcdc_gpio_config = panel_gpio_switch,
 };
 
 static void __init msm_fb_add_devices(void)

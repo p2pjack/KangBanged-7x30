@@ -2485,8 +2485,7 @@ static int mdp_probe(struct platform_device *pdev)
 #endif
 
 #ifdef CONFIG_FB_MSM_MDP40
-		configure_mdp_core_clk_table((mfd->panel_info.clk_rate)
-								* 23 / 20);
+		configure_mdp_core_clk_table(mfd->panel_info.clk_rate);
 		if (mfd->panel.type == HDMI_PANEL) {
 			mfd->dma = &dma_e_data;
 			mdp4_display_intf_sel(EXTERNAL_INTF_SEL, LCDC_RGB_INTF);
