@@ -24,7 +24,7 @@
 #include <linux/kernel.h>
 #include <linux/spi/spi.h>
 #include <linux/platform_device.h>
-#include <mach/msm_fb-7x30.h>
+#include <mach/msm_fb.h>
 #include <mach/msm_iomap.h>
 #include <mach/atmega_microp.h>
 #include <mach/vreg.h>
@@ -33,7 +33,7 @@
 #include "../board-spade.h"
 #include "../devices.h"
 #include "../proc_comm.h"
-#include "../../../../drivers/video/msm_7x30/mdp_hw.h"
+#include "../../../../drivers/video/msm/mdp_hw.h"
 
 #define DEBUG_LCM
 

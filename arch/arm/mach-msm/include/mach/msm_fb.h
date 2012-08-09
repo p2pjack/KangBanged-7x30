@@ -57,6 +57,8 @@ struct msm_panel_data {
 	int (*blank)(struct msm_panel_data *);
 	/* turns on the panel */
 	int (*unblank)(struct msm_panel_data *);
+	/* for msmfb shutdown() */
+	int (*shutdown)(struct msm_panel_data *);
 	void (*wait_vsync)(struct msm_panel_data *);
 	void (*request_vsync)(struct msm_panel_data *, struct msmfb_callback *);
 	void (*clear_vsync)(struct msm_panel_data *);
@@ -146,6 +148,11 @@ struct msm_lcdc_panel_ops {
 	int	(*uninit)(struct msm_lcdc_panel_ops *);
 	int	(*blank)(struct msm_lcdc_panel_ops *);
 	int	(*unblank)(struct msm_lcdc_panel_ops *);
+	int	(*shutdown)*struct msm_lcdc)panel_ops *);
+#ifdef CONFIG_PANEL_SELF_REFRESH
+	int	(*refresh_enable)(struct msm_lcdc_panel_ops *);
+	int	(*refresh_disable)(struct msm_lcdc_panel_ops *);
+#endif
 };
 
 struct msm_lcdc_platform_data {
@@ -186,6 +193,8 @@ struct msm_mddi_bridge_platform_data {
 	int (*blank)(struct msm_mddi_bridge_platform_data *,
 		     struct msm_mddi_client_data *);
 	int (*unblank)(struct msm_mddi_bridge_platform_data *,
+		       struct msm_mddi_client_data *);
+	int (*shutdown)(struct msm_mddi_bridge_platform_data *,
 		       struct msm_mddi_client_data *);
 	struct msm_fb_data fb_data;
 
