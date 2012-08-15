@@ -325,6 +325,7 @@ config S5K4E5YX_ACT
 	depends on MSM_CAMERA
 	default n
 	---help---
+<<<<<<< HEAD
 	  Autofocus of s5k4e5yx actuator
 
 config MT9V113
@@ -376,3 +377,17 @@ config QS_S5K4E1
 	default n
 	---help---
 	  Samsung 5M with Autofocus
+=======
+		Samsung 12 MP Bayer Sensor with auto focus, uses
+		4 mipi lanes, preview config = 1984 * 1508 at 30 fps,
+		snapshot config = 4000 * 3000 at 20 fps,
+		hfr video at 60, 90 and 120 fps.
+
+config MSM_V4L2_VIDEO_OVERLAY_DEVICE
+	tristate "Qualcomm MSM V4l2 video overlay device"
+	---help---
+	  Enables support for the MSM V4L2 video
+	  overlay driver. This allows video rendering
+	  apps to render overlaid video using Video4Linux2
+	  APIs, by using /dev/videoX device
+>>>>>>> cd58e61... msm_fb: display: MSM V4l2 video overlay driver
