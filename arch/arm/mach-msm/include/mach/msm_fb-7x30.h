@@ -429,5 +429,11 @@ extern struct mdp_histogram mdp_hist;
 extern struct completion mdp_hist_comp;
 #endif
 #endif
+struct mdp_v4l2_req;
+int msm_fb_v4l2_enable(struct mdp_overlay *req, bool enable, void **par);
+int msm_fb_v4l2_update(void *par,
+	unsigned long srcp0_addr, unsigned long srcp0_size,
+	unsigned long srcp1_addr, unsigned long srcp1_size,
+	unsigned long srcp2_addr, unsigned long srcp2_size);
 
 #endif /* _MSM_FB_7X30_H_ */
